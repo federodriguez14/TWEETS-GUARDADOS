@@ -1,7 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#3b63f3"/>
-  <rect x="13" y="14" width="7" height="36" rx="2" fill="#ffffff" opacity=".55"/>
-  <rect x="23" y="14" width="7" height="36" rx="2" fill="#ffffff" opacity=".75"/>
-  <path d="M34 12h16a2 2 0 0 1 2 2v38l-10-7-10 7V14a2 2 0 0 1 2-2z" fill="#ffffff"/>
-  <path d="M38 22l8 8M46 22l-8 8" stroke="#3b63f3" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4cb3e6"/>
+      <stop offset="1" stop-color="#2a8cc4"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- globo de diálogo -->
+  <path d="M136 112h240a40 40 0 0 1 40 40v168a40 40 0 0 1-40 40H226l-74 58a8 8 0 0 1-13-6.3V360h-3a40 40 0 0 1-40-40V152a40 40 0 0 1 40-40z" fill="#ffffff"/>
+  <!-- marcador -->
+  <path d="M220 160h72a12 12 0 0 1 12 12v140l-48-30-48 30V172a12 12 0 0 1 12-12z" fill="#2a8cc4"/>
+  <!-- estrella -->
+  <path d="M256 186l9.4 19 21 3-15.2 14.8 3.6 20.9L256 233.8l-18.8 9.9 3.6-20.9L225.6 208l21-3z" fill="#ffffff"/>
 </svg>

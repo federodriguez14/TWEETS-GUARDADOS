@@ -1,11 +1,11 @@
 // Service worker: permite abrir la app sin conexión.
 // Solo guarda en caché los archivos de la app; nunca las respuestas de Supabase.
-const VERSION = 'xb-v1.0.0';
+const VERSION = 'xb-v1.0.1';
 const SHELL = [
   './', './index.html', './config.js', './manifest.webmanifest', './css/styles.css',
   './js/app.js', './js/util.js', './js/db.js', './js/cloud.js', './js/sync.js',
   './js/xmeta.js', './js/search.js', './js/backup.js',
-  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
+  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
