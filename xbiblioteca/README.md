@@ -157,6 +157,19 @@ Alternativa sin atajo: en X "Copiar enlace" → en la app tocá **Guardar** y pe
 ### Guardar con un clic en la PC (bookmarklet)
 **Ajustes → Guardado rápido**: arrastrá el botón "＋ Guardar en XBiblioteca" a la barra de marcadores. Estando en una publicación de x.com, hacé clic y se abre la app con todo completo.
 
+### Guardado instantáneo al compartir (celular)
+Por defecto, **Compartir → XBiblioteca** (Android) o el Atajo (iPhone) guardan la publicación **al instante, sin formulario**: aparece "✓ Guardada", el texto y el autor se completan solos y podés tocar categorías ahí mismo (opcional). Para volver al formulario completo: Ajustes → Guardado rápido → desactivar *Guardar al instante al compartir*.
+
+### Botón "Guardar" dentro de x.com (PC) — extensión gratuita
+La carpeta `xbiblioteca-extension` agrega un botón con forma de marcador en cada publicación de x.com. Un clic la guarda en tu biblioteca (con texto y autor vía oEmbed), y un aviso te deja elegir categorías.
+1. Descomprimí `xbiblioteca-extension.zip` en una carpeta que no vayas a borrar (por ejemplo, Documentos).
+2. En Chrome abrí `chrome://extensions` (en Edge: `edge://extensions`) y activá **Modo de desarrollador**.
+3. **Cargar descomprimida** → elegí la carpeta `xbiblioteca-extension`.
+4. Fijá la extensión (ícono de pieza de rompecabezas → 📌) y tocala: pegá la **clave pública** (la URL ya viene cargada) → Guardar → iniciá sesión.
+5. Opcional: elegí una **categoría automática**. Recargá x.com.
+
+No se publica en la tienda de Chrome (que cobra USD 5): se usa en modo desarrollador, gratis. Del sitio solo toma el enlace de cada publicación. Si X cambia su diseño y el botón deja de aparecer, hay que ajustar `content.js`. Chrome puede mostrar un aviso sobre extensiones en modo desarrollador: es normal.
+
 ### Atajos de teclado
 `/` abre la búsqueda.
 

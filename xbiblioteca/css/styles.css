@@ -236,4 +236,9 @@ input[type=checkbox] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent
 #toast.ok { background: var(--ok); color: #fff; }
 @media (min-width: 800px) { #toast { bottom: 24px; } body { padding-bottom: 2rem; } }
 .loading { text-align: center; padding: 3rem; }
+.saved-view { display: grid; gap: 1rem; }
+.saved-view .view-head { margin-bottom: 0; }
+.quick-status { margin: 0; font-weight: 600; }
+.quick-status.ok { color: var(--ok); }
+.quick-status.warn { color: var(--warn); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

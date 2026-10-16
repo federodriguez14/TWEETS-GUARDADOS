@@ -7,7 +7,7 @@ import { search, highlightTerms } from './search.js';
 import { fetchMeta, parseXUrl, dateFromTweetId } from './xmeta.js';
 import { $, $$, h, uuid, nowIso, norm, fmtDate, timeAgo, cleanTags, toast, debounce, confirmDialog } from './util.js';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.1';
 const STATUS_LABEL = { pendiente: 'Pendiente de leer', leido: 'Leído', archivado: 'Archivado' };
 const PALETTE = ['#4f7cff', '#e5484d', '#30a46c', '#f76b15', '#8e4ec6', '#0d9488', '#d6409f', '#a18072', '#ffb224', '#6e56cf'];
 
@@ -64,6 +64,7 @@ const routes = {
   nuevo: () => viewForm(null),
   editar: (id) => viewForm(id),
   categorias: viewCategories,
+  guardado: viewSaved,
   ajustes: viewSettings,
 };
 
@@ -581,6 +582,9 @@ function viewSettings() {
   bmLink.addEventListener('click', (e) => { e.preventDefault(); toast('Arrastrá este botón a tu barra de marcadores'); });
 
   const quickCard = h('div', { class: 'card pad' }, h('h2', {}, '⚡ Guardado rápido'),
+    h('label', { class: 'field check' },
+      h('input', { type: 'checkbox', checked: quickEnabled(), onchange: (e) => { setQuickEnabled(e.target.checked); toast(e.target.checked ? 'Compartir guarda al instante' : 'Compartir abre el formulario'); } }),
+      h('span', {}, h('strong', {}, 'Guardar al instante al compartir'), ' (sin formulario; las categorías se eligen después)')),
     h('h3', {}, 'En la PC (cualquier navegador)'),
     h('p', {}, 'Arrastrá este botón a tu barra de marcadores. Cuando estés viendo una publicación en x.com, hacé clic en él:'),
     h('p', {}, bmLink),
@@ -647,12 +651,98 @@ function handleIncoming() {
   // 2) URL compartida (Compartir de Android, Atajo de iOS o bookmarklet)
   const params = new URLSearchParams(location.search);
   if (params.has('url') || params.has('text') || params.has('title')) {
-    const blob = [params.get('url'), params.get('text'), params.get('title')].filter(Boolean).join(' ');
+    // Se revisan todos los parámetros y la dirección completa (los Atajos de iOS
+    // a veces mandan el enlace sin codificar o partido en varios parámetros).
+    let full = location.search + ' ' + location.hash;
+    try { full = decodeURIComponent(full); } catch { /* texto con % sueltos */ }
+    const blob = [...params.values(), full].filter(Boolean).join(' ');
     const parsed = parseXUrl(blob);
-    state.prefill = parsed ? { url: parsed.url } : null;
-    history.replaceState(null, '', location.pathname + '#/nuevo');
-    if (!parsed) toast('Lo compartido no contiene un enlace de publicación de X', 'error');
+    if (!parsed) {
+      const got = [...params.values()].join(' ').trim();
+      state.received = got ? got.slice(0, 120) : '(vacío: el Atajo no envió nada)';
+    }
+    if (parsed && quickEnabled()) {
+      state.quick = parsed;               // guardado instantáneo, sin formulario
+      history.replaceState(null, '', location.pathname + '#/guardado');
+    } else {
+      state.prefill = parsed ? { url: parsed.url } : null;
+      history.replaceState(null, '', location.pathname + '#/nuevo');
+      if (!parsed) toast(`Lo compartido no contiene un enlace de publicación de X. Recibido: ${state.received}`, 'error');
+    }
   }
+}
+
+// ---------------------------------------------------------------- guardado instantáneo
+const QUICK_KEY = 'xb.quickSave';
+function quickEnabled() { try { return localStorage.getItem(QUICK_KEY) !== '0'; } catch { return true; } }
+function setQuickEnabled(on) { try { localStorage.setItem(QUICK_KEY, on ? '1' : '0'); } catch { /* nada */ } }
+
+function setQuickStatus(text, kind = '') {
+  state.quickStatus = { text, kind };
+  const el = $('#quick-status');
+  if (el) { el.textContent = text; el.className = 'quick-status ' + kind; }
+}
+
+/** Guarda la publicación al instante y completa texto/autor en segundo plano. */
+async function quickSave(parsed) {
+  const dup = state.posts.find((p) => p.tweet_id === parsed.tweetId);
+  if (dup) {
+    state.quickId = dup.id;
+    setQuickStatus('Esta publicación ya estaba en tu biblioteca.', 'warn');
+    return;
+  }
+  const rec = {
+    id: uuid(), url: parsed.url, tweet_id: parsed.tweetId, author_name: null, author_handle: parsed.handle,
+    text: null, posted_at: dateFromTweetId(parsed.tweetId), note: null, categories: [], tags: [],
+    favorite: false, status: 'pendiente', created_at: nowIso(), deleted_at: null,
+  };
+  state.quickId = rec.id;
+  await savePost(rec);
+  setQuickStatus('✓ Guardada. Buscando el texto…', 'ok');
+
+  (async () => {
+    const m = await fetchMeta(parsed.url);
+    const cur = await db.get('posts', rec.id);
+    if (cur && !cur.deleted_at && m.fetched) {
+      await savePost({ ...cur, author_name: cur.author_name || m.author_name || null, text: cur.text || m.text || null });
+    }
+    let msg = m.fetched ? '✓ Guardada con texto y autor.' : '✓ Guardada (sin texto: podés agregarlo al editar).';
+    if (cloud.isReady()) {
+      try { await sync.syncNow(); msg += ' ☁️ Sincronizada.'; }
+      catch { msg += ' Se sincronizará cuando haya conexión.'; }
+    }
+    setQuickStatus(msg, 'ok');
+    if (currentRoute().name === 'guardado') render();
+  })();
+}
+
+function viewSaved() {
+  const p = state.posts.find((x) => x.id === state.quickId);
+  if (!p) return emptyState('No hay una publicación recién guardada.', h('a', { class: 'btn', href: '#/panel' }, 'Ir al panel'));
+  const sel = new Set(p.categories || []);
+  const chips = h('div', { class: 'chips selectable' },
+    state.cats.map((c) => h('button', {
+      type: 'button', class: 'chip cat' + (sel.has(c.id) ? ' on' : ''), style: { '--c': c.color }, 'aria-pressed': String(sel.has(c.id)),
+      onclick: async () => {
+        const cur = state.posts.find((x) => x.id === p.id);
+        const set = new Set(cur.categories || []);
+        set.has(c.id) ? set.delete(c.id) : set.add(c.id);
+        await savePost({ ...cur, categories: [...set] });
+        render();
+      },
+    }, (sel.has(c.id) ? '✓ ' : '') + c.name)));
+  const st = state.quickStatus || { text: '', kind: '' };
+  return h('section', { class: 'saved-view' },
+    h('div', { class: 'view-head' }, h('h1', {}, 'Publicación guardada')),
+    h('p', { id: 'quick-status', class: 'quick-status ' + st.kind, 'aria-live': 'polite' }, st.text),
+    postCard(p, [], true),
+    h('div', { class: 'card pad' },
+      h('h2', {}, 'Categorías (opcional)'),
+      state.cats.length ? chips : h('p', { class: 'muted' }, 'Todavía no creaste categorías. ', h('a', { href: '#/categorias' }, 'Crear una')),
+      h('p', { class: 'hint' }, 'Se guardan al tocarlas. Ya podés volver a X.')),
+    h('div', { class: 'row wrap' },
+      h('a', { class: 'btn', href: '#/editar/' + encodeURIComponent(p.id) }, 'Agregar nota o etiquetas'),
+      h('a', { class: 'btn ghost', href: '#/biblioteca' }, 'Ir a la biblioteca')));
 }
 
 async function init() {
@@ -675,8 +765,14 @@ async function init() {
     if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) { e.preventDefault(); go('#/biblioteca'); }
   });
   updateSyncBadge();
-  render();
-  if (cloud.isReady()) sync.syncNow().then(afterSync).catch(() => {});
+  if (state.quick) {
+    const q = state.quick; state.quick = null;
+    await quickSave(q);
+    render();
+  } else {
+    render();
+    if (cloud.isReady()) sync.syncNow().then(afterSync).catch(() => {});
+  }
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
