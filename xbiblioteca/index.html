@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="description" content="Biblioteca personal para guardar, clasificar y buscar publicaciones de X.">
+  <title>XBiblioteca</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="XBiblioteca">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#view">Saltar al contenido</a>
+  <header class="topbar">
+    <a class="brand" href="#/panel" aria-label="XBiblioteca, inicio">
+      <img src="icons/icon.svg" alt="" width="28" height="28">
+      <span>XBiblioteca</span>
+    </a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#/panel" data-route="panel"><span class="ico" aria-hidden="true">▦</span><span>Panel</span></a>
+      <a href="#/biblioteca" data-route="biblioteca"><span class="ico" aria-hidden="true">⌕</span><span>Biblioteca</span></a>
+      <a href="#/nuevo" data-route="nuevo" class="nav-add"><span class="ico" aria-hidden="true">＋</span><span>Guardar</span></a>
+      <a href="#/categorias" data-route="categorias"><span class="ico" aria-hidden="true">◧</span><span>Categorías</span></a>
+      <a href="#/ajustes" data-route="ajustes"><span class="ico" aria-hidden="true">⚙</span><span>Ajustes</span></a>
+    </nav>
+    <button id="sync-btn" class="sync-btn" type="button" aria-label="Estado de sincronización"></button>
+  </header>
+  <main id="view" tabindex="-1"><p class="muted loading">Cargando…</p></main>
+  <script src="config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
